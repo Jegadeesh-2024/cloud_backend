@@ -19,7 +19,7 @@ import folderRoutes from "./routes/folderRoutes.js";
 
 const app = express();
 
-const port = 5000;
+const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -53,6 +53,6 @@ app.get("/testdb", async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(` server running on http://localhost:${port}`);
+app.listen(PORT, () => {
+  console.log(`Server running on ${PORT}`);
 });

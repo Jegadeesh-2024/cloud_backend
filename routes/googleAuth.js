@@ -19,7 +19,7 @@ router.get(
       { expiresIn:"1d"}
     );
 
-    res.redirect(`http://localhost:5173/?token=${token}`);
+    res.redirect(`${process.env.FRONTEND_URL}/?token=${token}`);
   }
 );
 export default router
