@@ -1,22 +1,20 @@
- import pkg from "pg";
+import pkg from "pg";
 
+const { Pool } = pkg;
 
- const { Pool } = pkg;
+const isProduction = process.env.NODE_ENV === "production";
 
-// const pool = new Pool({
-//   user: "postgres",
-//   host: "localhost",
-//   database: "cloudstorage",
-//   password: "123456",
-//   port: 5432,
-// });
-
-// export default pool;
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false,
-  },
-});
+const pool = isProduction
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false }
+    })
+  : new Pool({
+      user: "postgres",
+      host: "localhost",
+      database: "cloudstorage",
+      password: "123456",   // ✅ MUST be string
+      port: 5432,
+    });
 
 export default pool;
