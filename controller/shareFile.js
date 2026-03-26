@@ -182,7 +182,7 @@ export const getFilesSharedWithMe = async (req, res) => {
       `SELECT files.*, shares.permission
        FROM shares
        JOIN files ON files.id = shares.file_id
-       WHERE shares.shared_with_email = $1`,
+       WHERE LOWER(shares.shared_with_email) =LOWER($1) `,
       [req.user.email]
     );
 
