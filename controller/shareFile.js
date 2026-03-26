@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
 import pool from "../database/db.js";
 import supabase from "../database/supabase.js";
+import crypto from "crypto";
 
 // export const shareFile = async (req, res) => {
 
@@ -191,4 +192,60 @@ export const getFilesSharedWithMe = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 
+};
+// getsharred by link in email:
+export const createShareLink = async (req, res) => {
+  const { fileId } = req.params;
+
+  try {
+    // ✅ check already link exists
+    const existing = await pool.query(
+      "SELECT * FROM shares WHERE file_id=$1 AND is_link=true",
+      [fileId]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.json({
+        link: `${process.env.FRONTEND_URL}/share/${existing.rows[0].share_id}`,
+      });
+    }
+
+    // ✅ generate new link
+    const shareId = crypto.randomBytes(16).toString("hex");
+
+    await pool.query(
+      `INSERT INTO shares (id, file_id, shared_by, share_id, is_link)
+       VALUES ($1,$2,$3,$4,true)`,
+      [uuidv4(), fileId, req.user.id, shareId]
+    );
+
+    const link = `${process.env.FRONTEND_URL}/share/${shareId}`;
+
+    res.json({ link });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+export const getSharedFileByLink = async (req, res) => {
+  const { shareId } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT files.*
+       FROM shares
+       JOIN files ON files.id = shares.file_id
+       WHERE shares.share_id=$1 AND shares.is_link=true`,
+      [shareId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Invalid link" });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
